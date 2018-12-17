@@ -1,7 +1,6 @@
-opam-version: "2.0"
+opam-version: "1.2"
 name: "frama-c"
-synopsis: "Platform dedicated to the analysis of source code written in C"
-version: "18.0"
+version: "20181101"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Michele Alberti"
@@ -43,7 +42,7 @@ authors: [
 ]
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
-dev-repo: "git+https://github.com/Frama-C/Frama-C-snapshot.git#latest"
+dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git#latest"
 doc: "http://frama-c.com/download/user-manual-18.0-Argon.pdf"
 bug-reports: "https://bts.frama-c.com/"
 tags: [
@@ -70,20 +69,27 @@ build: [
                  "--mandir=%{man}%"
   ]
   [make "-j%{jobs}%"]
-  [make "-C" "doc" "download"] {with-doc}
 ]
 
 install: [
   [make "install"]
-  [make "-C" "doc" "install"] {with-doc}
 ]
 
-run-test: [
-  [make "-j%{jobs}%" "PTESTS_OPTS=-error-code" "tests"]
+remove: [
+  ["./configure" "--prefix" prefix
+                 "--disable-gui" { !conf-gtksourceview:installed |
+                                   !conf-gnomecanvas:installed }
+  ]
+  [make "uninstall"]
+  ["rm" "-rf" doc]
+]
+
+build-doc: [
+   [make "-C" "doc" "download"]
+   [make "-C" "doc" "install"]
 ]
 
 depends: [
-  "ocaml" { >= "4.02.3" }
   "ocamlgraph" { >= "1.8.8" & < "1.9~" }
   "ocamlfind" # needed beyond build stage, used by -load-module
   "zarith"
@@ -92,7 +98,6 @@ depends: [
   "conf-gtksourceview"
   "conf-gnomecanvas"
   "alt-ergo"
-  "conf-graphviz" { post }
 ]
 
 depopts: [
@@ -104,7 +109,8 @@ depopts: [
 ]
 
 conflicts: [
-  "why3-base" { < "0.88" | >= "1.0.0" } #for WP plug-in
+  "why3-base" { < "0.88" } #for WP plug-in
+  "why3" { >= "1.0" } #for WP plug-in
   "coq"      { < "8.4.6" } #for WP plug-in
   "lablgtk" { < "2.18.2" } #for ocaml >= 4.02.1
   "frama-c-e-acsl" #avoid mixing old releases of E-ACSL, it is already
